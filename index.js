@@ -82,8 +82,38 @@ async function likePost(page, tag) {
       waitUntil: "networkidle2",
     });
 
-    // Check if the post is already liked
-    const isLiked = await page.$('span[aria-label="Unlike"]');
+    async function getIsLiked() {
+      // Waiting for either of the two SVG elements to be visible.
+      await page.waitForSelector(
+        'button[type="button"] svg[aria-label="Gefällt mir"], button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
+      );
+
+      // Try selecting the "Gefällt mir nicht mehr" SVG.
+      let svgElement = await page.$(
+        'button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
+      );
+
+      // If "Gefällt mir nicht mehr" SVG is found, then the button is liked.
+      if (svgElement) {
+        console.log("liked");
+        return true;
+      }
+
+      // Try selecting the "Gefällt mir" SVG.
+      svgElement = await page.$(
+        'button[type="button"] svg[aria-label="Gefällt mir"]'
+      );
+
+      // If "Gefällt mir" SVG is found, then the button is not liked.
+      if (svgElement) {
+        console.log("not liked");
+        return false;
+      }
+    }
+
+    getIsLiked();
+
+    const isLiked = true;
 
     // Like the post if it is not already liked
     if (!isLiked) {

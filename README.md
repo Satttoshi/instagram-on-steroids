@@ -18,5 +18,5 @@ IG_USERNAME="insertUsername"
 IG_PASSWORD="insertPassword"
 ```
 
-3. Open terminal to the directory of index.js
+3. Open terminal within the directory of index.js
 4. Run with `node index`

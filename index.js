@@ -77,20 +77,20 @@ async function likePost(page, tag) {
 
     // Like the post if it is not already liked
     if (!isLiked) {
-      await page.click('button svg[aria-label="Like"]');
+      await page.click("button._abl-");
     }
 
     // Delay the next like action
     const delay = getRandomDelay();
-    await page.waitFor(delay * 1000);
+    await sleep(delay * 1000);
   }
 }
 
-// Replace 'YOUR_USERNAME' and 'YOUR_PASSWORD' with your Instagram credentials
+// Login credentials
 const username = process.env.IG_USERNAME;
 const password = process.env.IG_PASSWORD;
 
-// Replace 'TAG1', 'TAG2', etc. with the tags you want to use
+// Post Tags
 const tags = ["girl", "beautiful", "scenery", "nature", "photography"];
 
 // Start the bot

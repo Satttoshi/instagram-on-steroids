@@ -111,9 +111,7 @@ async function likePost(page, tag) {
       }
     }
 
-    getIsLiked();
-
-    const isLiked = true;
+    const isLiked = await getIsLiked();
 
     // Like the post if it is not already liked
     if (!isLiked) {

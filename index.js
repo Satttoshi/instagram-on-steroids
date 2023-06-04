@@ -18,6 +18,11 @@ async function login(username, password) {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
 
+  await page.setViewport({
+    width: 800,
+    height: 600,
+  });
+
   // Go to the Instagram login page
   await page.goto("https://www.instagram.com/accounts/login/", {
     waitUntil: "networkidle2",
@@ -37,15 +42,20 @@ async function login(username, password) {
 
   await sleep(2000);
 
-  const loginButton = await page.$x('//button[contains(text(), "Anmelden")]');
-  if (loginButton.length > 0) {
-    await loginButton[0].click();
-  }
+  const clickLogin = async () => {
+    const x = 396;
+    const y = 263;
+    await page.mouse.click(x, y);
+    return "attempt to login ...";
+  };
+
+  console.log(await clickLogin());
 
   // Wait for the login to complete
   await page.waitForNavigation({
     waitUntil: "networkidle2",
   });
+  console.log("login successful!");
 
   return { browser, page };
 }
@@ -77,7 +87,10 @@ async function likePost(page, tag) {
 
     // Like the post if it is not already liked
     if (!isLiked) {
-      await page.click("button._abl-");
+      const x = 458;
+      const y = 350;
+      await page.mouse.click(x, y);
+      console.log("liked a post!");
     }
 
     // Delay the next like action

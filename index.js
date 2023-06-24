@@ -3,6 +3,13 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+// ANSI escape codes for colored console
+const reset = "\x1b[0m";
+const red = "\x1b[31m";
+const green = "\x1b[32m";
+const bold = "\x1b[1m";
+const underline = "\x1b[4m";
+
 // Function to generate a random delay between likes
 function getRandomNumber(from, to) {
   return Math.floor(Math.random() * (to - from + 1)) + from;
@@ -92,7 +99,12 @@ async function likePostsInTag(page, tag) {
   }
 
   async function likePost(link) {
-    console.log(`current liked posts: ${counter} to target -> ${target}`);
+    console.log(
+      `${bold}${new Date().toLocaleString()}${reset} - current tag: #${tag}`
+    );
+    console.log(
+      `current liked posts: ${bold}${counter}${reset} to target -> ${bold}${target}${reset}`
+    );
 
     await timeout();
     // Go to the post page, if error try a different post
@@ -101,13 +113,11 @@ async function likePostsInTag(page, tag) {
         waitUntil: "networkidle2",
       });
     } catch (error) {
-      console.log(`Failed to navigate to ${link}: ${error}`);
+      console.log(`${red}Failed to navigate to ${link}: ${error}`);
       console.log("proceeding next post ...");
       console.log("");
       return;
     }
-
-    console.log(`${new Date().toLocaleString()} - current tag: #${tag}`);
 
     // Waiting for either of the two SVG elements to be visible.
     await page.waitForSelector(
@@ -121,7 +131,7 @@ async function likePostsInTag(page, tag) {
 
     // If "Gefällt mir nicht mehr" SVG is found, then the button is liked.
     if (svgElement) {
-      console.log("current post status: liked");
+      console.log(`current post: #${tag} is already liked${reset}`);
       console.log("proceeding next post ...");
       console.log("");
       await sleep(3000);
@@ -134,17 +144,18 @@ async function likePostsInTag(page, tag) {
 
     // If "Gefällt mir" SVG is found, then the button is not liked.
     if (svgElement) {
-      console.log("current post status: not liked");
+      console.log(`current post: #${tag}`);
       await randomSleep(3, 15, "like current post in");
       // Like the post if not liked
       const x = 458;
       const y = 350;
       await page.mouse.click(x, y);
-      console.log("post was liked successfully!");
+      console.log(`current post was ${bold}${green} liked${reset}!`);
       counter++;
 
       // Delay the next like action
       await randomSleep(1, 15, "goto next in");
+      console.log("");
 
       return;
     }

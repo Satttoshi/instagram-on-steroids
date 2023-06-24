@@ -92,6 +92,8 @@ async function likePostsInTag(page, tag) {
   }
 
   async function likePost(link) {
+    console.log(`current liked posts: ${counter} to target -> ${target}`);
+
     await timeout();
     // Go to the post page, if error try a different post
     try {
@@ -104,6 +106,8 @@ async function likePostsInTag(page, tag) {
       console.log("");
       return;
     }
+
+    console.log(`${new Date().toLocaleString()} - current tag: #${tag}`);
 
     // Waiting for either of the two SVG elements to be visible.
     await page.waitForSelector(
@@ -158,9 +162,7 @@ async function timeout() {
     // reset variables
     counter = 0;
     target = getRandomNumber(600, 2000);
-    console.log(
-      "new target, this many posts gonna be liked in next iteration: " + target
-    );
+    console.log("new target set for next iteration: " + target);
     // delay between 6 and 12 hours
     await randomSleep(21600, 43200, "bot is going to sleep for");
     return;

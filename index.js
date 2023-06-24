@@ -8,6 +8,13 @@ function getRandomNumber(from, to) {
   return Math.floor(Math.random() * (to - from + 1)) + from;
 }
 
+async function randomSleep(from, to, description) {
+  const delay = getRandomNumber(from, to);
+  console.log(`${description} ${delay} seconds ...`);
+  await sleep(delay * 1000);
+  return;
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -16,8 +23,8 @@ function sleep(ms) {
 async function login(username, password) {
   const browser = await puppeteer.launch({
     headless: false,
-    executablePath: "/usr/bin/chromium-browser",
-    args: ["--no-sandbox"],
+    // executablePath: "/usr/bin/chromium-browser",
+    // args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
   await page.setViewport({
@@ -85,10 +92,16 @@ async function likePostsInTag(page, tag) {
 
   async function likePost(link) {
     await timeout();
-
-    await page.goto(link, {
-      waitUntil: "networkidle2",
-    });
+    // Go to the post page, if error try a different post
+    try {
+      await page.goto(link, {
+        waitUntil: "networkidle2",
+      });
+    } catch (error) {
+      console.log(`Failed to navigate to ${link}: ${error}`);
+      console.log("proceeding next post ...");
+      return;
+    }
 
     // Waiting for either of the two SVG elements to be visible.
     await page.waitForSelector(
@@ -104,10 +117,9 @@ async function likePostsInTag(page, tag) {
     if (svgElement) {
       console.log("current post status: liked");
       console.log("proceeding next post ...");
-      await sleep(2000);
+      await sleep(3000);
       return;
     }
-
     // Try selecting the "Gefällt mir" SVG.
     svgElement = await page.$(
       'button[type="button"] svg[aria-label="Gefällt mir"]'
@@ -116,6 +128,7 @@ async function likePostsInTag(page, tag) {
     // If "Gefällt mir" SVG is found, then the button is not liked.
     if (svgElement) {
       console.log("current post status: not liked");
+      await randomSleep(3, 15, "like current post in");
       // Like the post if not liked
       const x = 458;
       const y = 350;
@@ -124,12 +137,15 @@ async function likePostsInTag(page, tag) {
       counter++;
 
       // Delay the next like action
-      const delay = getRandomNumber(1, 30);
-      console.log(`goto next in ${delay} seconds ...`);
-      await sleep(delay * 1000);
+      await randomSleep(1, 15, "goto next in");
 
       return;
     }
+
+    // If neither SVG is found, then the button is not found.
+    console.log("current post status: not found");
+    console.log("proceeding next post ...");
+    return;
   }
 }
 
@@ -138,11 +154,11 @@ async function timeout() {
     // reset variables
     counter = 0;
     target = getRandomNumber(400, 1000);
-    console.log("new target, this many posts gonna be liked: " + target);
+    console.log(
+      "new target, this many posts gonna be liked in next iteration: " + target
+    );
     // delay between 6 and 12 hours
-    const delay = getRandomNumber(21600, 43200);
-    console.log(`bot is going to sleep for ${delay} seconds ...`);
-    await sleep(delay * 1000);
+    await randomSleep(21600, 43200, "bot is going to sleep for");
     return;
   }
   return;

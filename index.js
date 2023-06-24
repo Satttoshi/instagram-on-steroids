@@ -6,7 +6,7 @@ dotenv.config();
 // Function to generate a random delay between likes
 function getRandomDelay() {
   // Generate a random number between 1 and 10 (in seconds)
-  return Math.floor(Math.random() * 10) + 1;
+  return Math.floor(Math.random() * 30) + 1;
 }
 
 function sleep(ms) {

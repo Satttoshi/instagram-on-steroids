@@ -64,7 +64,7 @@ async function login(username, password) {
 }
 
 // Function to like a post based on a given tag
-async function likePost(page, tag) {
+async function likePostsInTag(page, tag) {
   // Go to the explore page for the given tag
   await page.goto(`https://www.instagram.com/explore/tags/${tag}/`, {
     waitUntil: "networkidle2",
@@ -81,54 +81,53 @@ async function likePost(page, tag) {
   // Loop through the post links and like each post
   for (const link of postLinks) {
     // Go to the post page
+    await likePost(link);
+  }
+
+  async function likePost(link) {
     await page.goto(link, {
       waitUntil: "networkidle2",
     });
 
-    async function getIsLiked() {
-      // Waiting for either of the two SVG elements to be visible.
-      await page.waitForSelector(
-        'button[type="button"] svg[aria-label="Gefällt mir"], button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
-      );
+    // Waiting for either of the two SVG elements to be visible.
+    await page.waitForSelector(
+      'button[type="button"] svg[aria-label="Gefällt mir"], button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
+    );
 
-      // Try selecting the "Gefällt mir nicht mehr" SVG.
-      let svgElement = await page.$(
-        'button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
-      );
+    // Try selecting the "Gefällt mir nicht mehr" SVG.
+    let svgElement = await page.$(
+      'button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
+    );
 
-      // If "Gefällt mir nicht mehr" SVG is found, then the button is liked.
-      if (svgElement) {
-        console.log("current post status: liked");
-        console.log("proceeding next post ...");
-        return true;
-      }
-
-      // Try selecting the "Gefällt mir" SVG.
-      svgElement = await page.$(
-        'button[type="button"] svg[aria-label="Gefällt mir"]'
-      );
-
-      // If "Gefällt mir" SVG is found, then the button is not liked.
-      if (svgElement) {
-        console.log("current post status: not liked");
-        return false;
-      }
+    // If "Gefällt mir nicht mehr" SVG is found, then the button is liked.
+    if (svgElement) {
+      console.log("current post status: liked");
+      console.log("proceeding next post ...");
+      await sleep(2000);
+      return;
     }
 
-    const isLiked = await getIsLiked();
+    // Try selecting the "Gefällt mir" SVG.
+    svgElement = await page.$(
+      'button[type="button"] svg[aria-label="Gefällt mir"]'
+    );
 
-    // Like the post if it is not already liked
-    if (!isLiked) {
+    // If "Gefällt mir" SVG is found, then the button is not liked.
+    if (svgElement) {
+      console.log("current post status: not liked");
+      // Like the post if not liked
       const x = 458;
       const y = 350;
       await page.mouse.click(x, y);
       console.log("post was liked successfully!");
-    }
 
-    // Delay the next like action
-    const delay = getRandomDelay();
-    console.log(`goto next in ${delay} seconds ...`);
-    await sleep(delay * 1000);
+      // Delay the next like action
+      const delay = getRandomDelay();
+      console.log(`goto next in ${delay} seconds ...`);
+      await sleep(delay * 1000);
+
+      return;
+    }
   }
 }
 
@@ -192,17 +191,24 @@ const tags = [
   "beautifuldestinations",
 ];
 
+let counter = 0;
+let target = 100;
+
+function setRandomTarget() {
+  target = Math.floor(Math.random() * 301) + 600;
+}
+
 // Run the bot
 async function run() {
   const { browser, page } = await login(username, password);
 
   for (const tag of tags) {
-    await likePost(page, tag);
+    await likePostsInTag(page, tag);
   }
 
   await browser.close();
 
-  console.log("All tags being iterated!");
+  console.log("All tags have been iterated!");
 
   // Run the bot again after a random delay
   const delay = getRandomDelay();

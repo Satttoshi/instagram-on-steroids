@@ -16,8 +16,8 @@ function sleep(ms) {
 async function login(username, password) {
   const browser = await puppeteer.launch({
     headless: false,
-    // executablePath: "/usr/bin/chromium-browser",
-    // args: ["--no-sandbox"],
+    executablePath: "/usr/bin/chromium-browser",
+    args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
   await page.setViewport({

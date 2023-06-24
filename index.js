@@ -8,7 +8,6 @@ const reset = "\x1b[0m";
 const red = "\x1b[31m";
 const green = "\x1b[32m";
 const bold = "\x1b[1m";
-const underline = "\x1b[4m";
 
 // Function to generate a random delay between likes
 function getRandomNumber(from, to) {
@@ -78,7 +77,8 @@ async function login(username, password) {
 
 // Function to like a post based on a given tag
 async function likePostsInTag(page, tag) {
-  console.log(`SWITCHING TO TAG: #${tag} ...`);
+  console.log(`${bold}SWITCHING TO TAG: #${tag} ...${reset}`);
+  console.log("");
   // Go to the explore page for the given tag
   await page.goto(`https://www.instagram.com/explore/tags/${tag}/`, {
     waitUntil: "networkidle2",
@@ -150,7 +150,7 @@ async function likePostsInTag(page, tag) {
       const x = 458;
       const y = 350;
       await page.mouse.click(x, y);
-      console.log(`current post was ${bold}${green} liked${reset}!`);
+      console.log(`current post was ${bold}${green}liked${reset}!`);
       counter++;
 
       // Delay the next like action
@@ -244,11 +244,22 @@ const tags = [
 let counter = 0;
 let target = getRandomNumber(600, 2000);
 
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 // Run the bot
 async function run() {
   const { browser, page } = await login(username, password);
 
-  for (const tag of tags) {
+  // Shuffle the tags array
+  const shuffledTags = shuffleArray(tags);
+
+  for (const tag of shuffledTags) {
     await likePostsInTag(page, tag);
   }
 
@@ -263,6 +274,11 @@ async function run() {
   await sleep(delay * 1000);
   run();
 }
+
+console.log(
+  `${bold}instagram-on-steroids started at ${new Date().toLocaleString()}${reset}`
+);
+console.log("");
 
 // Start the bot
 run();

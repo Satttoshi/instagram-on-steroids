@@ -15,9 +15,12 @@ function sleep(ms) {
 
 // Function to log in to Instagram
 async function login(username, password) {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({
+    headless: false,
+    // executablePath: "/usr/bin/chromium-browser",
+    // args: ["--no-sandbox"],
+  });
   const page = await browser.newPage();
-
   await page.setViewport({
     width: 800,
     height: 600,
@@ -132,7 +135,60 @@ const username = process.env.IG_USERNAME;
 const password = process.env.IG_PASSWORD;
 
 // Post Tags
-const tags = ["girl", "beautiful", "scenery", "nature", "photography"];
+const tags = [
+  "girl",
+  "beautiful",
+  "scenery",
+  "nature",
+  "photography",
+  "travel",
+  "adventure",
+  "fashion",
+  "beauty",
+  "landscape",
+  "wanderlust",
+  "naturelovers",
+  "photooftheday",
+  "picoftheday",
+  "instagood",
+  "outdoors",
+  "earth",
+  "explore",
+  "mountains",
+  "wildlife",
+  "model",
+  "style",
+  "instatravel",
+  "naturephotography",
+  "love",
+  "life",
+  "art",
+  "inspiration",
+  "selfie",
+  "fitness",
+  "healthy",
+  "lifestyle",
+  "motivation",
+  "travelphotography",
+  "portrait",
+  "sunset",
+  "sunrise",
+  "skyporn",
+  "ocean",
+  "vacation",
+  "holiday",
+  "beach",
+  "sea",
+  "forest",
+  "flowers",
+  "wildlifephotography",
+  "travelgram",
+  "landscapelovers",
+  "earthpix",
+  "paradise",
+  "wonderful_places",
+  "beautifuldestinations",
+];
 
 // Start the bot
 (async () => {

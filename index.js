@@ -137,7 +137,8 @@ async function timeout() {
   if (counter >= target) {
     // reset variables
     counter = 0;
-    target = getRandomNumber(300, 600);
+    target = getRandomNumber(400, 1000);
+    console.log("new target, this many posts gonna be liked: " + target);
     // delay between 6 and 12 hours
     const delay = getRandomNumber(21600, 43200);
     console.log(`bot is going to sleep for ${delay} seconds ...`);

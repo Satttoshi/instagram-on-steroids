@@ -153,7 +153,7 @@ async function timeout() {
   if (counter >= target) {
     // reset variables
     counter = 0;
-    target = getRandomNumber(400, 1000);
+    target = getRandomNumber(600, 2000);
     console.log(
       "new target, this many posts gonna be liked in next iteration: " + target
     );
@@ -225,7 +225,7 @@ const tags = [
 ];
 
 let counter = 0;
-let target = 100;
+let target = getRandomNumber(600, 2000);
 
 // Run the bot
 async function run() {

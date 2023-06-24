@@ -176,6 +176,7 @@ async function timeout() {
     console.log("new target set for next iteration: " + target);
     // delay between 6 and 12 hours
     await randomSleep(21600, 43200, "bot is going to sleep for");
+    console.log("");
     return;
   }
   return;
@@ -257,7 +258,10 @@ async function run() {
   const { browser, page } = await login(username, password);
 
   // Shuffle the tags array
+  console.log("shuffle tags ...");
   const shuffledTags = shuffleArray(tags);
+  console.log("shuffled tags: " + shuffledTags);
+  console.log("");
 
   for (const tag of shuffledTags) {
     await likePostsInTag(page, tag);

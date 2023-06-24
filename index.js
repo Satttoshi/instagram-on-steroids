@@ -4,9 +4,8 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 // Function to generate a random delay between likes
-function getRandomDelay() {
-  // Generate a random number between 1 and 10 (in seconds)
-  return Math.floor(Math.random() * 30) + 1;
+function getRandomNumber(from, to) {
+  return Math.floor(Math.random() * (to - from + 1)) + from;
 }
 
 function sleep(ms) {
@@ -85,6 +84,8 @@ async function likePostsInTag(page, tag) {
   }
 
   async function likePost(link) {
+    await timeout();
+
     await page.goto(link, {
       waitUntil: "networkidle2",
     });
@@ -120,15 +121,30 @@ async function likePostsInTag(page, tag) {
       const y = 350;
       await page.mouse.click(x, y);
       console.log("post was liked successfully!");
+      counter++;
 
       // Delay the next like action
-      const delay = getRandomDelay();
+      const delay = getRandomNumber(1, 30);
       console.log(`goto next in ${delay} seconds ...`);
       await sleep(delay * 1000);
 
       return;
     }
   }
+}
+
+async function timeout() {
+  if (counter >= target) {
+    // reset variables
+    counter = 0;
+    target = getRandomNumber(300, 600);
+    // delay between 6 and 12 hours
+    const delay = getRandomNumber(21600, 43200);
+    console.log(`bot is going to sleep for ${delay} seconds ...`);
+    await sleep(delay * 1000);
+    return;
+  }
+  return;
 }
 
 // Login credentials
@@ -194,10 +210,6 @@ const tags = [
 let counter = 0;
 let target = 100;
 
-function setRandomTarget() {
-  target = Math.floor(Math.random() * 301) + 600;
-}
-
 // Run the bot
 async function run() {
   const { browser, page } = await login(username, password);
@@ -211,8 +223,8 @@ async function run() {
   console.log("All tags have been iterated!");
 
   // Run the bot again after a random delay
-  const delay = getRandomDelay();
-  console.log(`goto next in ${delay} seconds ...`);
+  const delay = getRandomDelay(60, 180);
+  console.log(`Restarting Iteration in ${delay} seconds ...`);
   await sleep(delay * 1000);
   run();
 }

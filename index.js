@@ -71,6 +71,7 @@ async function login(username, password) {
 
 // Function to like a post based on a given tag
 async function likePostsInTag(page, tag) {
+  console.log(`SWITCHING TO TAG: #${tag} ...`);
   // Go to the explore page for the given tag
   await page.goto(`https://www.instagram.com/explore/tags/${tag}/`, {
     waitUntil: "networkidle2",
@@ -100,6 +101,7 @@ async function likePostsInTag(page, tag) {
     } catch (error) {
       console.log(`Failed to navigate to ${link}: ${error}`);
       console.log("proceeding next post ...");
+      console.log("");
       return;
     }
 
@@ -117,6 +119,7 @@ async function likePostsInTag(page, tag) {
     if (svgElement) {
       console.log("current post status: liked");
       console.log("proceeding next post ...");
+      console.log("");
       await sleep(3000);
       return;
     }
@@ -145,6 +148,7 @@ async function likePostsInTag(page, tag) {
     // If neither SVG is found, then the button is not found.
     console.log("current post status: not found");
     console.log("proceeding next post ...");
+    console.log("");
     return;
   }
 }
@@ -241,7 +245,8 @@ async function run() {
 
   // Run the bot again after a random delay
   const delay = getRandomDelay(60, 180);
-  console.log(`Restarting Iteration in ${delay} seconds ...`);
+  console.log(`Restarting Iteration in ${delay / 60} minutes ...`);
+  console.log("");
   await sleep(delay * 1000);
   run();
 }

@@ -192,8 +192,8 @@ const tags = [
   "beautifuldestinations",
 ];
 
-// Start the bot
-(async () => {
+// Run the bot
+async function run() {
   const { browser, page } = await login(username, password);
 
   for (const tag of tags) {
@@ -201,4 +201,15 @@ const tags = [
   }
 
   await browser.close();
-})();
+
+  console.log("All tags being iterated!");
+
+  // Run the bot again after a random delay
+  const delay = getRandomDelay();
+  console.log(`goto next in ${delay} seconds ...`);
+  await sleep(delay * 1000);
+  run();
+}
+
+// Start the bot
+run();

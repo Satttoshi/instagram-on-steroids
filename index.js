@@ -98,7 +98,8 @@ async function likePost(page, tag) {
 
       // If "Gefällt mir nicht mehr" SVG is found, then the button is liked.
       if (svgElement) {
-        console.log("liked");
+        console.log("current post status: liked");
+        console.log("proceeding next post ...");
         return true;
       }
 
@@ -109,7 +110,7 @@ async function likePost(page, tag) {
 
       // If "Gefällt mir" SVG is found, then the button is not liked.
       if (svgElement) {
-        console.log("not liked");
+        console.log("current post status: not liked");
         return false;
       }
     }
@@ -121,11 +122,12 @@ async function likePost(page, tag) {
       const x = 458;
       const y = 350;
       await page.mouse.click(x, y);
-      console.log("liked a post!");
+      console.log("post was liked successfully!");
     }
 
     // Delay the next like action
     const delay = getRandomDelay();
+    console.log(`goto next in ${delay} seconds ...`);
     await sleep(delay * 1000);
   }
 }

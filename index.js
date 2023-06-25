@@ -32,6 +32,25 @@ async function login(username, password) {
     // args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
+
+  // Set a random user agent for the browser
+  const userAgents = [
+    // Chrome on Windows 10
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537",
+    // Firefox on macOS
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:10.0) Gecko/20100101 Firefox/10.0",
+    // Safari on macOS
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15",
+    // Edge on Windows 10
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134",
+    // Chrome on Android
+    "Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Mobile Safari/537.36",
+    // Safari on iOS
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+  ];
+  const userAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+  await page.setUserAgent(userAgent);
+
   await page.setViewport({
     width: 800,
     height: 600,
@@ -63,7 +82,11 @@ async function login(username, password) {
     return "attempt to login ...";
   };
 
-  console.log(await clickLogin());
+  try {
+    console.log(await clickLogin());
+  } catch (error) {
+    throw new Error("Failed to login on page");
+  }
 
   // Wait for the login to complete
   await page.waitForNavigation({
@@ -72,6 +95,24 @@ async function login(username, password) {
   console.log("login successful!");
 
   return { browser, page };
+}
+
+async function handleWarning() {
+  // Does warning exists (html page as dummy in test.html) if text in spawn exists
+  try {
+    const warning = await page.$x(
+      '//span[contains(text(), "Wir haben den Verdacht")]'
+    );
+  } catch (error) {
+    console.log("warning does not exist");
+    return;
+  }
+
+  if (warning) {
+    console.log("warning exists");
+  }
+
+  return;
 }
 
 // Function to like a post based on a given tag
@@ -117,6 +158,9 @@ async function likePostsInTag(page, tag) {
       console.log("");
       return;
     }
+
+    // Handle warning, if it exists then click it away LOL
+    await handleWarning();
 
     // Waiting for either of the two SVG elements to be visible.
     await page.waitForSelector(
@@ -198,8 +242,21 @@ function shuffleArray(array) {
 
 // Run the bot
 async function run() {
-  const { browser, page } = await login(username, password);
+  let browser;
+  let page;
 
+  try {
+    const { browser, page } = await login(username, password);
+    browser = browser;
+    page = page;
+  } catch (error) {
+    console.log("login failed!");
+    console.log("retry ...");
+    console.log("");
+    await browser.close();
+    await sleep(5000);
+    run();
+  }
   // Shuffle the tags array
   console.log("shuffle tags ...");
   const shuffledTags = shuffleArray(tags);

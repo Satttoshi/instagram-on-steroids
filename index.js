@@ -82,33 +82,37 @@ async function login(username, password) {
     return "attempt to login ...";
   };
 
-  try {
-    console.log(await clickLogin());
-  } catch (error) {
-    throw new Error("Failed to login on page");
-  }
+  console.log(await clickLogin());
 
   // Wait for the login to complete
-  await page.waitForNavigation({
-    waitUntil: "networkidle2",
-  });
-  console.log("login successful!");
 
-  return { browser, page };
+  try {
+    await page.waitForNavigation({
+      waitUntil: "networkidle2",
+    });
+    console.log("login successful!");
+    return { browser, page };
+  } catch (error) {
+    throw new Error("login failed!");
+  }
 }
 
 async function handleWarning() {
   // Does warning exists (html page as dummy in test.html) if text in spawn exists
+
+  let warningData;
+
   try {
     const warning = await page.$x(
       '//span[contains(text(), "Wir haben den Verdacht")]'
     );
+    warningData = warning;
   } catch (error) {
     console.log("warning does not exist");
     return;
   }
 
-  if (warning) {
+  if (warningData) {
     console.log("warning exists");
   }
 
@@ -242,20 +246,15 @@ function shuffleArray(array) {
 
 // Run the bot
 async function run() {
-  let browser;
-  let page;
+  let browserData;
+  let pageData;
 
   try {
     const { browser, page } = await login(username, password);
-    browser = browser;
-    page = page;
+    browserData = browser;
+    pageData = page;
   } catch (error) {
-    console.log("login failed!");
-    console.log("retry ...");
-    console.log("");
-    await browser.close();
-    await sleep(5000);
-    run();
+    console.log(error);
   }
   // Shuffle the tags array
   console.log("shuffle tags ...");
@@ -264,10 +263,10 @@ async function run() {
   console.log("");
 
   for (const tag of shuffledTags) {
-    await likePostsInTag(page, tag);
+    await likePostsInTag(pageData, tag);
   }
 
-  await browser.close();
+  await browserData.close();
 
   console.log("All tags have been iterated!");
 

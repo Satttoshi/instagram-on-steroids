@@ -1,13 +1,12 @@
-const puppeteer = require("puppeteer");
-const dotenv = require("dotenv");
+import puppeteer from "puppeteer";
+import dotenv from "dotenv";
+import { tags } from "./src/tags.js";
+import ansi from "./src/ansi.js";
 
 dotenv.config();
 
 // ANSI escape codes for colored console
-const reset = "\x1b[0m";
-const red = "\x1b[31m";
-const green = "\x1b[32m";
-const bold = "\x1b[1m";
+const { reset, red, green, bold } = ansi;
 
 // Function to generate a random delay between likes
 function getRandomNumber(from, to) {
@@ -29,8 +28,8 @@ function sleep(ms) {
 async function login(username, password) {
   const browser = await puppeteer.launch({
     headless: false,
-    executablePath: "/usr/bin/chromium-browser",
-    args: ["--no-sandbox"],
+    // executablePath: "/usr/bin/chromium-browser",
+    // args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
   await page.setViewport({
@@ -185,62 +184,6 @@ async function timeout() {
 // Login credentials
 const username = process.env.IG_USERNAME;
 const password = process.env.IG_PASSWORD;
-
-// Post Tags
-const tags = [
-  "girl",
-  "beautiful",
-  "scenery",
-  "nature",
-  "photography",
-  "travel",
-  "adventure",
-  "fashion",
-  "beauty",
-  "landscape",
-  "wanderlust",
-  "naturelovers",
-  "photooftheday",
-  "picoftheday",
-  "instagood",
-  "outdoors",
-  "earth",
-  "explore",
-  "mountains",
-  "wildlife",
-  "model",
-  "style",
-  "instatravel",
-  "naturephotography",
-  "love",
-  "life",
-  "art",
-  "inspiration",
-  "selfie",
-  "fitness",
-  "healthy",
-  "lifestyle",
-  "motivation",
-  "travelphotography",
-  "portrait",
-  "sunset",
-  "sunrise",
-  "skyporn",
-  "ocean",
-  "vacation",
-  "holiday",
-  "beach",
-  "sea",
-  "forest",
-  "flowers",
-  "wildlifephotography",
-  "travelgram",
-  "landscapelovers",
-  "earthpix",
-  "paradise",
-  "wonderful_places",
-  "beautifuldestinations",
-];
 
 let counter = 0;
 let target = getRandomNumber(600, 2000);

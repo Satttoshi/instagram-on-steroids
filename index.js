@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer";
 import dotenv from "dotenv";
 import { tags } from "./src/tags.js";
-import ansi from "./src/ansi.js";
+import { ansi } from "./src/ansi.js";
 
 dotenv.config();
 

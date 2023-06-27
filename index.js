@@ -1,13 +1,12 @@
-const puppeteer = require("puppeteer");
-const dotenv = require("dotenv");
+import puppeteer from "puppeteer";
+import dotenv from "dotenv";
+import { tags } from "./src/tags.js";
+import { ansi } from "./src/ansi.js";
 
 dotenv.config();
 
 // ANSI escape codes for colored console
-const reset = "\x1b[0m";
-const red = "\x1b[31m";
-const green = "\x1b[32m";
-const bold = "\x1b[1m";
+const { reset, red, green, bold } = ansi;
 
 // Function to generate a random delay between likes
 function getRandomNumber(from, to) {
@@ -29,10 +28,29 @@ function sleep(ms) {
 async function login(username, password) {
   const browser = await puppeteer.launch({
     headless: false,
-    executablePath: "/usr/bin/chromium-browser",
-    args: ["--no-sandbox"],
+    // executablePath: "/usr/bin/chromium-browser",
+    // args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
+
+  // Set a random user agent for the browser
+  const userAgents = [
+    // Chrome on Windows 10
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537",
+    // Firefox on macOS
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:10.0) Gecko/20100101 Firefox/10.0",
+    // Safari on macOS
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15",
+    // Edge on Windows 10
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134",
+    // Chrome on Android
+    "Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Mobile Safari/537.36",
+    // Safari on iOS
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+  ];
+  const userAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+  await page.setUserAgent(userAgent);
+
   await page.setViewport({
     width: 800,
     height: 600,
@@ -67,12 +85,38 @@ async function login(username, password) {
   console.log(await clickLogin());
 
   // Wait for the login to complete
-  await page.waitForNavigation({
-    waitUntil: "networkidle2",
-  });
-  console.log("login successful!");
 
-  return { browser, page };
+  try {
+    await page.waitForNavigation({
+      waitUntil: "networkidle2",
+    });
+    console.log("login successful!");
+    return { browser, page };
+  } catch (error) {
+    throw new Error("login failed!");
+  }
+}
+
+async function handleWarning() {
+  // Does warning exists (html page as dummy in test.html) if text in spawn exists
+
+  let warningData;
+
+  try {
+    const warning = await page.$x(
+      '//span[contains(text(), "Wir haben den Verdacht")]'
+    );
+    warningData = warning;
+  } catch (error) {
+    console.log("warning does not exist");
+    return;
+  }
+
+  if (warningData) {
+    console.log("warning exists");
+  }
+
+  return;
 }
 
 // Function to like a post based on a given tag
@@ -118,6 +162,9 @@ async function likePostsInTag(page, tag) {
       console.log("");
       return;
     }
+
+    // Handle warning, if it exists then click it away LOL
+    await handleWarning();
 
     // Waiting for either of the two SVG elements to be visible.
     await page.waitForSelector(
@@ -186,62 +233,6 @@ async function timeout() {
 const username = process.env.IG_USERNAME;
 const password = process.env.IG_PASSWORD;
 
-// Post Tags
-const tags = [
-  "girl",
-  "beautiful",
-  "scenery",
-  "nature",
-  "photography",
-  "travel",
-  "adventure",
-  "fashion",
-  "beauty",
-  "landscape",
-  "wanderlust",
-  "naturelovers",
-  "photooftheday",
-  "picoftheday",
-  "instagood",
-  "outdoors",
-  "earth",
-  "explore",
-  "mountains",
-  "wildlife",
-  "model",
-  "style",
-  "instatravel",
-  "naturephotography",
-  "love",
-  "life",
-  "art",
-  "inspiration",
-  "selfie",
-  "fitness",
-  "healthy",
-  "lifestyle",
-  "motivation",
-  "travelphotography",
-  "portrait",
-  "sunset",
-  "sunrise",
-  "skyporn",
-  "ocean",
-  "vacation",
-  "holiday",
-  "beach",
-  "sea",
-  "forest",
-  "flowers",
-  "wildlifephotography",
-  "travelgram",
-  "landscapelovers",
-  "earthpix",
-  "paradise",
-  "wonderful_places",
-  "beautifuldestinations",
-];
-
 let counter = 0;
 let target = getRandomNumber(600, 2000);
 
@@ -255,8 +246,16 @@ function shuffleArray(array) {
 
 // Run the bot
 async function run() {
-  const { browser, page } = await login(username, password);
+  let browserData;
+  let pageData;
 
+  try {
+    const { browser, page } = await login(username, password);
+    browserData = browser;
+    pageData = page;
+  } catch (error) {
+    console.log(error);
+  }
   // Shuffle the tags array
   console.log("shuffle tags ...");
   const shuffledTags = shuffleArray(tags);
@@ -264,10 +263,10 @@ async function run() {
   console.log("");
 
   for (const tag of shuffledTags) {
-    await likePostsInTag(page, tag);
+    await likePostsInTag(pageData, tag);
   }
 
-  await browser.close();
+  await browserData.close();
 
   console.log("All tags have been iterated!");
 

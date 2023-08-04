@@ -37,16 +37,6 @@ async function login(username, password) {
   const userAgents = [
     // Chrome on Windows 10
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537",
-    // Firefox on macOS
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:10.0) Gecko/20100101 Firefox/10.0",
-    // Safari on macOS
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15",
-    // Edge on Windows 10
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134",
-    // Chrome on Android
-    "Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Mobile Safari/537.36",
-    // Safari on iOS
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
   ];
   const userAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
   await page.setUserAgent(userAgent);
@@ -91,6 +81,7 @@ async function login(username, password) {
       waitUntil: "networkidle2",
     });
     console.log("login successful!");
+    await handleWarning();
     return { browser, page };
   } catch (error) {
     throw new Error("login failed!");
@@ -103,6 +94,7 @@ async function handleWarning() {
   let warningData;
 
   try {
+    await sleep(2000);
     const warning = await page.$x(
       '//span[contains(text(), "Wir haben den Verdacht")]'
     );
@@ -168,13 +160,11 @@ async function likePostsInTag(page, tag) {
 
     // Waiting for either of the two SVG elements to be visible.
     await page.waitForSelector(
-      'button[type="button"] svg[aria-label="Gefällt mir"], button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
+      'svg[aria-label="Gefällt mir"], svg[aria-label="Gefällt mir nicht mehr"]'
     );
 
     // Try selecting the "Gefällt mir nicht mehr" SVG.
-    let svgElement = await page.$(
-      'button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
-    );
+    let svgElement = await page.$('svg[aria-label="Gefällt mir nicht mehr"]');
 
     // If "Gefällt mir nicht mehr" SVG is found, then the button is liked.
     if (svgElement) {
@@ -185,9 +175,7 @@ async function likePostsInTag(page, tag) {
       return;
     }
     // Try selecting the "Gefällt mir" SVG.
-    svgElement = await page.$(
-      'button[type="button"] svg[aria-label="Gefällt mir"]'
-    );
+    svgElement = await page.$('svg[aria-label="Gefällt mir"]');
 
     // If "Gefällt mir" SVG is found, then the button is not liked.
     if (svgElement) {

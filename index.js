@@ -1,13 +1,12 @@
-const puppeteer = require("puppeteer");
-const dotenv = require("dotenv");
+import puppeteer from "puppeteer";
+import dotenv from "dotenv";
+import { tags } from "./src/tags.js";
+import { ansi } from "./src/ansi.js";
 
 dotenv.config();
 
 // ANSI escape codes for colored console
-const reset = "\x1b[0m";
-const red = "\x1b[31m";
-const green = "\x1b[32m";
-const bold = "\x1b[1m";
+const { reset, red, green, bold } = ansi;
 
 // Function to generate a random delay between likes
 function getRandomNumber(from, to) {
@@ -29,10 +28,19 @@ function sleep(ms) {
 async function login(username, password) {
   const browser = await puppeteer.launch({
     headless: false,
-    executablePath: "/usr/bin/chromium-browser",
-    args: ["--no-sandbox"],
+    // executablePath: "/usr/bin/chromium-browser",
+    // args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
+
+  // Set a random user agent for the browser
+  const userAgents = [
+    // Chrome on Windows 10
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537",
+  ];
+  const userAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+  await page.setUserAgent(userAgent);
+
   await page.setViewport({
     width: 800,
     height: 600,
@@ -67,12 +75,40 @@ async function login(username, password) {
   console.log(await clickLogin());
 
   // Wait for the login to complete
-  await page.waitForNavigation({
-    waitUntil: "networkidle2",
-  });
-  console.log("login successful!");
 
-  return { browser, page };
+  try {
+    await page.waitForNavigation({
+      waitUntil: "networkidle2",
+    });
+    console.log("login successful!");
+    await handleWarning();
+    return { browser, page };
+  } catch (error) {
+    throw new Error("login failed!");
+  }
+}
+
+async function handleWarning() {
+  // Does warning exists (html page as dummy in test.html) if text in spawn exists
+
+  let warningData;
+
+  try {
+    await sleep(2000);
+    const warning = await page.$x(
+      '//span[contains(text(), "Wir haben den Verdacht")]'
+    );
+    warningData = warning;
+  } catch (error) {
+    console.log("warning does not exist");
+    return;
+  }
+
+  if (warningData) {
+    console.log("warning exists");
+  }
+
+  return;
 }
 
 // Function to like a post based on a given tag
@@ -119,15 +155,16 @@ async function likePostsInTag(page, tag) {
       return;
     }
 
+    // Handle warning, if it exists then click it away LOL
+    await handleWarning();
+
     // Waiting for either of the two SVG elements to be visible.
     await page.waitForSelector(
-      'button[type="button"] svg[aria-label="Gefällt mir"], button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
+      'svg[aria-label="Gefällt mir"], svg[aria-label="Gefällt mir nicht mehr"]'
     );
 
     // Try selecting the "Gefällt mir nicht mehr" SVG.
-    let svgElement = await page.$(
-      'button[type="button"] svg[aria-label="Gefällt mir nicht mehr"]'
-    );
+    let svgElement = await page.$('svg[aria-label="Gefällt mir nicht mehr"]');
 
     // If "Gefällt mir nicht mehr" SVG is found, then the button is liked.
     if (svgElement) {
@@ -138,9 +175,7 @@ async function likePostsInTag(page, tag) {
       return;
     }
     // Try selecting the "Gefällt mir" SVG.
-    svgElement = await page.$(
-      'button[type="button"] svg[aria-label="Gefällt mir"]'
-    );
+    svgElement = await page.$('svg[aria-label="Gefällt mir"]');
 
     // If "Gefällt mir" SVG is found, then the button is not liked.
     if (svgElement) {
@@ -186,62 +221,6 @@ async function timeout() {
 const username = process.env.IG_USERNAME;
 const password = process.env.IG_PASSWORD;
 
-// Post Tags
-const tags = [
-  "girl",
-  "beautiful",
-  "scenery",
-  "nature",
-  "photography",
-  "travel",
-  "adventure",
-  "fashion",
-  "beauty",
-  "landscape",
-  "wanderlust",
-  "naturelovers",
-  "photooftheday",
-  "picoftheday",
-  "instagood",
-  "outdoors",
-  "earth",
-  "explore",
-  "mountains",
-  "wildlife",
-  "model",
-  "style",
-  "instatravel",
-  "naturephotography",
-  "love",
-  "life",
-  "art",
-  "inspiration",
-  "selfie",
-  "fitness",
-  "healthy",
-  "lifestyle",
-  "motivation",
-  "travelphotography",
-  "portrait",
-  "sunset",
-  "sunrise",
-  "skyporn",
-  "ocean",
-  "vacation",
-  "holiday",
-  "beach",
-  "sea",
-  "forest",
-  "flowers",
-  "wildlifephotography",
-  "travelgram",
-  "landscapelovers",
-  "earthpix",
-  "paradise",
-  "wonderful_places",
-  "beautifuldestinations",
-];
-
 let counter = 0;
 let target = getRandomNumber(600, 2000);
 
@@ -255,8 +234,16 @@ function shuffleArray(array) {
 
 // Run the bot
 async function run() {
-  const { browser, page } = await login(username, password);
+  let browserData;
+  let pageData;
 
+  try {
+    const { browser, page } = await login(username, password);
+    browserData = browser;
+    pageData = page;
+  } catch (error) {
+    console.log(error);
+  }
   // Shuffle the tags array
   console.log("shuffle tags ...");
   const shuffledTags = shuffleArray(tags);
@@ -264,10 +251,10 @@ async function run() {
   console.log("");
 
   for (const tag of shuffledTags) {
-    await likePostsInTag(page, tag);
+    await likePostsInTag(pageData, tag);
   }
 
-  await browser.close();
+  await browserData.close();
 
   console.log("All tags have been iterated!");
 

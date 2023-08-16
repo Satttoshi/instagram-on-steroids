@@ -159,9 +159,16 @@ async function likePostsInTag(page, tag) {
     await handleWarning();
 
     // Waiting for either of the two SVG elements to be visible.
-    await page.waitForSelector(
-      'svg[aria-label="Gefällt mir"], svg[aria-label="Gefällt mir nicht mehr"]'
-    );
+    try {
+      await page.waitForSelector(
+        'svg[aria-label="Gefällt mir"], svg[aria-label="Gefällt mir nicht mehr"]'
+      );
+    } catch (error) {
+      console.log(`${red}Failed to find Like Button: ${error}`);
+      console.log("proceeding next post ...");
+      console.log("");
+      return;
+    }
 
     // Try selecting the "Gefällt mir nicht mehr" SVG.
     let svgElement = await page.$('svg[aria-label="Gefällt mir nicht mehr"]');
